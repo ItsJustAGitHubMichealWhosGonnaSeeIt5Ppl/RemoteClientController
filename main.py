@@ -11,6 +11,7 @@ username = None
 pauseConnection = True
 socketConnected = False # Connected True/False
 
+
 # Listening to Server and Sending Nickname
 def receive():
     global username
@@ -58,6 +59,7 @@ def receive():
                 client.send('YES'.encode('ascii'))
             else:
                 try:
+                    # TODO #3 Allow commands to be sent without parenthesis
                     exec(f"incnt.{message}")
                 except:
                     print(f'No incentive with name {message}')

@@ -4,6 +4,9 @@ import time
 import random
 import webbrowser
 
+#TODO #7 run actions in their own thread so it doesn't prevent multiple actions from being done at once OR create a queue system
+#TODO #9 Get TTS working
+
 keyboard = Controller()
 
 # # # Keypresses
@@ -16,8 +19,9 @@ def parkingBrake():
     keyboard.release(Key.space)
 
 
-def slalom(delay = 0.6):
-    delay = float(delay) if delay.isdigit() else 0.6
+#TODO #1 Fix Slalom command to accept float values correctly
+def slalom(delay = "0.6"):
+    delay = float(delay)
     loop = 0
     while loop < 5:
         keyboard.press('a')
@@ -28,7 +32,8 @@ def slalom(delay = 0.6):
         keyboard.release('d')
         loop+=1
         
-    
+
+#TODO #5 confirm this works
 def towToService():
     """Tow to nearest service centre
     """
@@ -45,27 +50,26 @@ def everyCam():
     loop = 0
     while loop < 7:
         num = str(random.randrange(0,9))
-        keyboard.press(num)
-        keyboard.release(num)
+        keyboard.tap(num)
         loop+=1
         time.sleep(.4)
-    keyboard.press('1')
-    keyboard.release('1')
-    
+    keyboard.tap('1')
+
+
 def cinematicCam():
     """Enable cinematic camera (20 seconds)
     """
     count = 0
     while count < 5:
-        keyboard.press('8')
-        keyboard.release('8')
+        keyboard.tap('8')
         time.sleep(5) 
         count +=1
-    keyboard.press('1')
-    keyboard.release('1')
+    keyboard.tap('1')
+
 
 
 # # # Sound
+# TODO #8 Get sounds from the web working
 
 def metalPipes():
     """Play metal pipes sound
@@ -74,12 +78,12 @@ def metalPipes():
 
 
 # # # Other
-    
+
+#TODO #6 allow function keys, windows key, etc to be used through here.
 def anyKey(key):
     """
     """
-    keyboard.press(key)
-    keyboard.release(key)
+    keyboard.tap(key)
     
 
 def openLink(link):

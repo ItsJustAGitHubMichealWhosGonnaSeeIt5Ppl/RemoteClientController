@@ -2,12 +2,15 @@ import socket
 import threading
 import time
 
+
+#TODO #4 create web interface for actions
+
 # Users connected
 clientsList = []
 #Usernames 
 usernamesList = []
 
-
+#TODO #2 Make server IP and port changeable in program
 # Server info
 host = '10.9.8.54'
 port = 36950
