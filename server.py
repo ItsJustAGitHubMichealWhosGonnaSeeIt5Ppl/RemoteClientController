@@ -1,6 +1,8 @@
 import socket
 import threading
 import time
+from flask import Flask, render_template, request
+from waitress import serve
 
 
 #TODO #4 create web interface for actions
@@ -25,12 +27,13 @@ server.listen(20)
 
 def broadcast(message):
     for client in clientsList:
-        client.send(message)
+        client.send(message.encode('ascii'))
         
         
 # Handling Messages From Clients
 def lifeCheck(client):
     while True:
+        time.sleep(1)
         try:
             # Check if client is still connected
             client.send('ALIVE'.encode('ascii'))
@@ -53,7 +56,7 @@ def lifeCheck(client):
             nickname = usernamesList[index]
             usernamesList.remove(nickname)
             break
-        time.sleep(1)
+        
 
 
 # Receiving / Listening Function
@@ -76,20 +79,45 @@ def receive():
         thread = threading.Thread(target=lifeCheck, args=(client,))
         thread.start()
         
-def write():
+# Send commands
+#TODO #10 This doesn't need to be a thread, convert to be used as needed.
+# TODO #11 Switch command sending to use json.loads and json.dumps
+def sendCommand(command,interactive,*extra):
     while True:
-        message = input('')
-        if message == '[STOP]':
+        if command == 'STOP':
             server.close()
             break
-        
-        broadcast(message.encode('ascii'))
-        
+        broadcast(command)
+
+
+# Start thread
 receive_thread = threading.Thread(target=receive)
 receive_thread.start()
 
-write_thread = threading.Thread(target=write)
-write_thread.start()
+#ommandThread = threading.Thread(target=sendCommand)
+#commandThread.start()
 
 
 
+
+incentives = ["parkingBrake","towToService","everyCam","cinematicCam","metalPipes","slalom"]
+incentivesInteractive = []
+# # # Flask 
+
+app = Flask(__name__)
+
+@app.route("/", methods=['GET', 'POST'])
+def main():
+    
+    # This is my genius way to allow the button name list to be easily updated
+    if request.method == 'POST':
+        incentiveName = list(request.form.listvalues())[0][0]
+        print(f'{incentiveName} pressed')
+        sendCommand(incentiveName, interactive = False)
+        
+    return render_template('control.html',items=incentives)
+
+
+# Start webserver
+if __name__ == '__main__': 
+    serve(app, host = host, port=8888)
