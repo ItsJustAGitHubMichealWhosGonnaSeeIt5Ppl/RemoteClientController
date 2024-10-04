@@ -24,7 +24,7 @@ server.bind((host, port))
 #Maximum clients
 server.listen(20)
 
-
+#Broadcast messages
 def broadcast(message):
     for client in clientsList:
         client.send(message.encode('ascii'))
