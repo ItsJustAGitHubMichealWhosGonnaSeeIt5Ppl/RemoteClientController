@@ -1,0 +1,9 @@
+# requirements.txt
+
+certifi==2024.8.30
+charset-normalizer==3.3.2
+playsound3==2.2.2
+pynput==1.7.7
+python-xlib==0.33
+six==1.16.0
+
