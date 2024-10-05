@@ -6,8 +6,6 @@ from flask import Flask, render_template, request
 from waitress import serve
 
 
-
-
 def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     """Basic input validation function.
 
@@ -40,7 +38,7 @@ def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
         return 'maxAttemptsReached'
         
 
-# I know I could use configparser, but I don't want more modules
+# I know I could use configparser, but I don't want more modules for now
 print('Checking for existing config information')
 userResponse = ''
 try:
@@ -56,6 +54,7 @@ try:
     userResponse = inputValidator('Y/N: ',['y','yes','n','no'])
 except:
     print('No config found')
+
 
 # Maybe there is a better way to do this
 if userResponse.lower().startswith('y'):
@@ -103,8 +102,6 @@ if usedExistingConfig == False:
 clientsList = []
 #Usernames 
 usernamesList = []
-
-
 #Maximum clients
 server.listen(20)
 
@@ -141,7 +138,7 @@ def lifeCheck(client):
             usernamesList.remove(nickname)
             print(f'{nickname} disconnected (exception)')
             break
-        
+
 
 
 # Receiving / Listening Function
@@ -165,7 +162,6 @@ def receive():
         thread.start()
 
 
-
 # Send commands
 #TODO #10 This doesn't need to be a thread, convert to be used as needed.
 # TODO #11 Switch command sending to use json.loads and json.dumps
@@ -187,7 +183,6 @@ incentivesInteractive = []
 
 
 # # # Flask 
-
 app = Flask(__name__)
 
 @app.route("/", methods=['GET', 'POST'])

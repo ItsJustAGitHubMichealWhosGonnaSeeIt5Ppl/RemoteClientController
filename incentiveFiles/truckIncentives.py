@@ -6,6 +6,7 @@ import webbrowser
 
 #TODO #7 run actions in their own thread so it doesn't prevent multiple actions from being done at once OR create a queue system
 #TODO #9 Get TTS working
+#TODO #17 Mark conflicting functions
 
 keyboard = Controller()
 
