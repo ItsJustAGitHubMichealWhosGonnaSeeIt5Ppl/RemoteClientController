@@ -20,7 +20,7 @@ def parkingBrake():
 
 
 #TODO #1 Fix Slalom command to accept float values correctly
-def slalom(delay = "0.6"):
+def slalom(delay = "0.8"):
     delay = float(delay)
     loop = 0
     while loop < 5:
@@ -42,6 +42,8 @@ def towToService():
     keyboard.tap(Key.enter)
     time.sleep(.5)
     keyboard.tap('1')
+    time.sleep(.5)
+    keyboard.tap(Key.enter)
 
     
 # # # Camera modifiers
