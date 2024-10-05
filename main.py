@@ -1,15 +1,36 @@
 import tkinter as tk
 from tkinter import ttk
-
 import socket 
 import threading
+from queue import Queue
+import queue
+import time
 import incentiveFiles.truckIncentives as incnt # THIS IS USED
-
+#TODO #15 Allow configs to be loaded
 
 
 username = None
 pauseConnection = True
 socketConnected = False # Connected True/False
+messageQueue = Queue()
+
+# get items from queue
+def incentiveQueue():
+    global messageQueue
+    while True:
+        if messageQueue.empty():
+            time.sleep(0.4)
+        else:
+            message = messageQueue.get()
+            try:
+                # TODO #3 Allow commands to be sent without parenthesis
+                exec(f"incnt.{message}")
+            except:
+                print(f'No incentive with name {message}')
+
+
+queueThread = threading.Thread(target=incentiveQueue)
+queueThread.start()
 
 
 # Listening to Server and Sending Nickname
@@ -21,6 +42,7 @@ def receive():
         
         # Client not doing anything
         if socketConnected == False and pauseConnection == True:
+            time.sleep(.1)
             continue
         
         # Client trying to disconnect
@@ -58,11 +80,7 @@ def receive():
             elif message == 'ALIVE':
                 client.send('YES'.encode('ascii'))
             else:
-                try:
-                    # TODO #3 Allow commands to be sent without parenthesis
-                    exec(f"incnt.{message}")
-                except:
-                    print(f'No incentive with name {message}')
+                messageQueue.put(message)
         
         # Allow client to try to connect            
         elif socketConnected == False and pauseConnection == False:
@@ -77,7 +95,9 @@ def receive():
                 pauseConnection = True
                 client.close()
         else:
+            time.sleep(.1)
             continue
+            
         
                 
 
@@ -117,11 +137,13 @@ def connectionToggle():
                 connectionStatus.set('Connection Refused')
         
     else:
-        #Stop receiving commands
+        #Stop receiving commands and clear queue
+        messageQueue.queue.clear()
         pauseConnection = True
 
 # # # # Tkinter # # # # 
 
+#TODO #16 Stop program when TKinter window is closed
 # TKinter UI
 guiRoot = tk.Tk()
 guiRoot.title('ExtraLife Incentives Client')
@@ -163,6 +185,16 @@ portField.grid(column=1,row=2)
 connectButton.grid(column=1,row=3)
 guiFrame.pack()
 
+# Cleanly close
+def closeWindow():
+    guiRoot.destroy()
+    try:
+        client.close()
+    except:
+        pass
+    exit()
+
 # Start it
+guiRoot.protocol("WM_DELETE_WINDOW", closeWindow)
 guiRoot.mainloop()
 
