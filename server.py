@@ -7,16 +7,13 @@ from waitress import serve
 
 
 
-#TODO #2 Make server IP and port changeable in program
-# Server info
-
 
 def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     """Basic input validation function.
 
     Args:
         message (string): Message to be sent requesting user input.
-        validInputs (list): list of valid inputs. Not case sensitive.
+        validInputs (list): list of valid inputs. Must be lowercase.
         maxAttemps (int, optional): Maximum attempts allowed. Defaults to 10.
         exitOnFailure (bool, optional): Specifies whether entire program should close if no valid user input is given. Defaults to True.
 
@@ -27,8 +24,9 @@ def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     attempts = 0
     while validInput == False and attempts < maxAttemps:
         usrInp = input(message)
-        if usrInp.lower() in validInputs.lower():
+        if usrInp.lower() in validInputs:
             return usrInp
+        
         else:
             print('Invalid response')
             attempts +=1
@@ -36,61 +34,68 @@ def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     if exitOnFailure == True:
         print('Max attempts reached, stopping program')
         exit()
+    
     else:
         print('Max attempts reached, skipping')
         return 'maxAttemptsReached'
         
 
 # I know I could use configparser, but I don't want more modules
-print('Trying to load details from config')
+print('Checking for existing config information')
+userResponse = ''
 try:
     config = open('config.txt', 'r')
     for line in config:
         if line.startswith('IP'):
-            host = line.replace('IP=','')
+            host = line.replace('IP=','').strip('\n')
+        
         elif line.startswith('PORT'):
-            port = int(line.replace('PORT=',''))
+            port = int(line.replace('PORT=','').strip('\n'))
     config.close()
-    configFound = True
-
-except:
-    configFound = False
-
-# Offer to load existing config
-if configFound == True:
     print(f'Existing config found\nIP/HOST: {host}\nPORT: {port}\n Would you like to use it?')    
     userResponse = inputValidator('Y/N: ',['y','yes','n','no'])
-    if userResponse.lower().startswith('n'):
-        print('Enter desired IP and port for the server')
-        host = input('IP/Host: ')
-        port = input('Port: ')
+except:
+    print('No config found')
+
+# Maybe there is a better way to do this
+if userResponse.lower().startswith('y'):
+    usedExistingConfig = True
+    print('Config loaded')
+    
+else:
+    usedExistingConfig = False
+    print('Enter desired IP and port for the server')
+    #TODO #12 add better input validation here
+    host = input('IP/Host: ')
+    port = int(input('Port: '))
 
 
-
-#TODO #12 add better input validation here
 # Start server
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((host, port)) 
+    print('Server started')
+    
 except:
     print('Server failed to start')
     exit()
 
 
 # Offer to save config
-print('Would you like to save the current server settings?')
-userResponse = inputValidator('Y/N: ',['y','yes','n','no'],10,False)
-if userResponse ==' maxAttemptsReached':
-    pass
-elif userResponse.lower().startswith('n'):
-    print('config not saved')
-else:
-    try:
-        config = open('config.txt', 'w')
-        config.write(f"IP={host}\nPORT={port}")
-        config.close()
-    except:
-        print('failed to save config, try again later')
+if usedExistingConfig == False:
+    print('Would you like to save the current server settings?')
+    userResponse = inputValidator('Y/N: ',['y','yes','n','no'],10,False)
+    if userResponse ==' maxAttemptsReached':
+        pass
+    elif userResponse.lower().startswith('n'):
+        print('config not saved')
+    else:
+        try:
+            config = open('config.txt', 'w')
+            config.write(f"IP={host}\nPORT={port}")
+            config.close()
+        except:
+            print('failed to save config, try again later')
 
 
 #TODO #13 Make username and client list into dictionary
@@ -175,14 +180,12 @@ def sendCommand(command,interactive,*extra):
 receive_thread = threading.Thread(target=receive)
 receive_thread.start()
 
-#ommandThread = threading.Thread(target=sendCommand)
-#commandThread.start()
 
-
-
-
+#TODO #14 move these to the relevant incentive files
 incentives = ["parkingBrake","towToService","everyCam","cinematicCam","metalPipes","slalom"]
 incentivesInteractive = []
+
+
 # # # Flask 
 
 app = Flask(__name__)

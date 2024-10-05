@@ -3,7 +3,7 @@ from tkinter import ttk
 
 import socket 
 import threading
-import incentives as incnt # THIS IS USED
+import incentiveFiles.truckIncentives as incnt # THIS IS USED
 
 
 
