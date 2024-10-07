@@ -4,6 +4,7 @@ import time
 import re
 from flask import Flask, render_template, request
 from waitress import serve
+from incentiveFiles.truckIncentives import incentives
 
 
 def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
@@ -163,7 +164,6 @@ def receive():
 
 
 # Send commands
-#TODO #10 This doesn't need to be a thread, convert to be used as needed.
 # TODO #11 Switch command sending to use json.loads and json.dumps
 def sendCommand(command,interactive,*extra):
     
@@ -178,8 +178,7 @@ receive_thread.start()
 
 
 #TODO #14 move these to the relevant incentive files
-incentives = ["parkingBrake","towToService","everyCam","cinematicCam","metalPipes","slalom"]
-incentivesInteractive = []
+
 
 
 # # # Flask 

@@ -8,6 +8,10 @@ import webbrowser
 #TODO #9 Get TTS working
 #TODO #17 Mark conflicting functions
 
+
+incentives = ["parkingBrake","slalom","everyCam","cinematicCam","metalPipes","towToService"]
+
+
 keyboard = Controller()
 
 # # # Keypresses
