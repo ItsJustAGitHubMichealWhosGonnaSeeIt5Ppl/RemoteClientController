@@ -3,9 +3,9 @@ from tkinter import ttk
 import socket 
 import threading
 from queue import Queue
-import queue
 import time
 import incentiveFiles.truckIncentives as incnt # THIS IS USED
+
 #TODO #15 Allow configs to be loaded
 
 
@@ -13,6 +13,7 @@ username = None
 pauseConnection = True
 socketConnected = False # Connected True/False
 messageQueue = Queue()
+
 
 # get items from queue
 def incentiveQueue():
@@ -131,10 +132,20 @@ def connectionToggle():
             try:
                 client.connect((ip, port))
                 pauseConnection = False
+                try:
+                    config = open('config.txt', 'w')
+                    config.write(f"IP={ip}\nPORT={port}\nUSER={username}")
+                    config.close()
+                except:
+                    print('Config failed to save')
             except socket.gaierror:
                 connectionStatus.set('invalid IP/Host')
             except ConnectionRefusedError:
+                print('Connection Refused (Likely wrong port)')
                 connectionStatus.set('Connection Refused')
+            except OSError:
+                print('OSError: No Route to Host (Likely bad IP)')
+                connectionStatus.set('No Route to Host')
         
     else:
         #Stop receiving commands and clear queue
@@ -150,20 +161,37 @@ guiRoot.title('ExtraLife Incentives Client')
 guiFrame = ttk.Frame(guiRoot)
 
 
-
 # TKinter variables
 cButtonText = tk.StringVar() # Connection toggle button
 cButtonText.set('Connect')
 connectionStatus = tk.StringVar()
 connectionStatus.set('Not Connected')
+savedUsername = tk.StringVar()
+savedIP = tk.StringVar()
+savedPort = tk.StringVar()
 
+# Try to load user file
+try:
+    config = open('config.txt', 'r')
+    for line in config:
+        if line.startswith('IP'):
+            savedIP.set(line.replace('IP=','').strip('\n'))
+        
+        elif line.startswith('PORT'):
+            savedPort.set(int(line.replace('PORT=','').strip('\n')))
+            
+        elif line.startswith('USER'):
+            savedUsername.set(line.replace('USER=','').strip('\n'))
 
-
+    config.close()
+except:
+    pass
 
 #Fields
-usernameField = tk.Entry(guiFrame,text='username')
-ipField = tk.Entry(guiFrame,text='ip')
-portField = tk.Entry(guiFrame,text='port')
+usernameField = tk.Entry(guiFrame,textvariable=savedUsername)
+ipField = tk.Entry(guiFrame,textvariable=savedIP)
+portField = tk.Entry(guiFrame,textvariable=savedPort)
+
 
 # Buttons and status
 connectButton = tk.Button(guiFrame,textvariable=cButtonText, width=10,command=connectionToggle)
