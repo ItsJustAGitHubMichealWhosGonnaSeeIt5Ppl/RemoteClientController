@@ -1,0 +1,4 @@
+# requirements.txt
+
+playsound3==2.2.2
+pynput==1.7.7
