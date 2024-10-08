@@ -6,8 +6,6 @@ from queue import Queue
 import time
 import incentiveFiles.truckIncentives as incnt # THIS IS USED
 
-#TODO #15 Allow configs to be loaded
-
 
 username = None
 pauseConnection = True
@@ -24,7 +22,6 @@ def incentiveQueue():
         else:
             message = messageQueue.get()
             try:
-                # TODO #3 Allow commands to be sent without parenthesis
                 exec(f"incnt.{message}")
             except:
                 print(f'No incentive with name {message}')

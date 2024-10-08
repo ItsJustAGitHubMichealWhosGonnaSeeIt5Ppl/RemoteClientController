@@ -4,13 +4,11 @@ import time
 import random
 import webbrowser
 
-#TODO #7 run actions in their own thread so it doesn't prevent multiple actions from being done at once OR create a queue system
 #TODO #9 Get TTS working
 #TODO #17 Mark conflicting functions
 
 
 incentives = ["parkingBrake","slalom","everyCam","cinematicCam","metalPipes","towToService"]
-
 
 keyboard = Controller()
 
@@ -66,6 +64,7 @@ def everyCam():
 def cinematicCam():
     """Enable cinematic camera (20 seconds)
     """
+    playsound('sounds/gotoView.mp3')
     count = 0
     while count < 5:
         keyboard.tap('8')
