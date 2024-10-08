@@ -2,13 +2,33 @@
 <html lang='en'>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+</style>
+
 <title>Control Pannel</title>
 <body>
-
     {% for incentive in items %}
     <form action="/" method="POST">
         <input type="submit" name="{{ incentive }}" value="{{ incentive }}">
     </form>
     {% endfor %}
+
+<h3>Connected Users [MUST RELOAD TO UPDATE]</h3>
+<table>
+        <tr>
+            <td>Username</td>
+            <td>IP</td>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user }}</td>
+            <td>IP UNKNOWN</td>
+        </tr>
+        {% endfor %}
+</table>
 </body>
 </html>

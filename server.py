@@ -94,6 +94,7 @@ if usedExistingConfig == False:
             config = open('config.txt', 'w')
             config.write(f"IP={host}\nPORT={port}")
             config.close()
+            print('Config saved')
         except:
             print('failed to save config, try again later')
 
@@ -177,10 +178,6 @@ receive_thread = threading.Thread(target=receive)
 receive_thread.start()
 
 
-#TODO #14 move these to the relevant incentive files
-
-
-
 # # # Flask 
 app = Flask(__name__)
 
@@ -193,7 +190,7 @@ def main():
         print(f'{incentiveName} pressed')
         sendCommand(incentiveName+ "()", interactive = False)
         
-    return render_template('control.html',items=incentives)
+    return render_template('control.html',items=incentives,users=usernamesList)
 
 
 # Start webserver
