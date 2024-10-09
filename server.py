@@ -4,8 +4,7 @@ import time
 import re
 from flask import Flask, render_template, request
 from waitress import serve
-from incentiveFiles.truckIncentives import incentives
-
+from incentiveFiles.truckIncentives import createIncentiveDict
 
 def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     """Basic input validation function.
@@ -38,6 +37,9 @@ def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
         print('Max attempts reached, skipping')
         return 'maxAttemptsReached'
         
+#TODO #19 Automatically refresh user list on webpage
+#TODO #18 Create optional initialisation for ExtraLife API
+
 
 # I know I could use configparser, but I don't want more modules for now
 print('Checking for existing config information')
@@ -178,6 +180,9 @@ receive_thread = threading.Thread(target=receive)
 receive_thread.start()
 
 
+# Create list of incentives
+incentiveDict = createIncentiveDict()
+
 # # # Flask 
 app = Flask(__name__)
 
@@ -186,11 +191,11 @@ def main():
     
     # This is my genius way to allow the button name list to be easily updated
     if request.method == 'POST':
-        incentiveName = list(request.form.listvalues())[0][0]
-        print(f'{incentiveName} pressed')
-        sendCommand(incentiveName+ "()", interactive = False)
+        command,name = list(request.form.to_dict().items())[0]
+        print(f'{command} pressed')
+        sendCommand(command+ "()", interactive = False)
         
-    return render_template('control.html',items=incentives,users=usernamesList)
+    return render_template('control.html',dict=incentiveDict,users=usernamesList)
 
 
 # Start webserver

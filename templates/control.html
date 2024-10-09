@@ -11,9 +11,10 @@ table, th, td {
 
 <title>Control Pannel</title>
 <body>
-    {% for incentive in items %}
+    <h1>Manual Controls</h1>
+    {% for incentive, details in dict.items() %}
     <form action="/" method="POST">
-        <input type="submit" name="{{ incentive }}" value="{{ incentive }}">
+        <input type="submit" name="{{ incentive }}" value="{{ details['name'] }}">
     </form>
     {% endfor %}
 
