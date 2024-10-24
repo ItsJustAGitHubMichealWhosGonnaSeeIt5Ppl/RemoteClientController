@@ -6,6 +6,8 @@ from flask import Flask, render_template, request
 from waitress import serve
 from incentiveFiles.truckIncentives import createIncentiveDict
 
+#TODO #22 prevent refreshing page from sending command again
+
 def inputValidator(message, validInputs, maxAttemps=10,exitOnFailure=True):
     """Basic input validation function.
 

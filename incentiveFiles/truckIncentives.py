@@ -2,11 +2,9 @@ from pynput.keyboard import Key, Controller
 from playsound3 import playsound
 import time
 import random
-import webbrowser
 
 #TODO #9 Get TTS working
 #TODO #17 Mark conflicting functions
-#TODO #20 Add price details either directly to the items or to a dict
 
 # Must add functions to this list
 activeFunctions = ["parkingBrake","slalom","everyCam","cinematicCam","metalPipes","towToService"]
@@ -32,7 +30,7 @@ def templateIncentive(details=False):
 def parkingBrake(details=False):
     """Enable parking brake
     """
-    cost = 0.0
+    cost = 6.0
     fName = 'Throw \'er in park'
     
     if details == True:
@@ -45,7 +43,7 @@ def parkingBrake(details=False):
 
 #TODO #1 Fix Slalom command to accept float values correctly
 def slalom(details=False,delay = "0.8"):
-    cost = 0.0
+    cost = 3.0
     fName = 'Safety Car'
     
     if details == True:
@@ -67,7 +65,7 @@ def slalom(details=False,delay = "0.8"):
 def towToService(details=False):
     """Tow to nearest service centre
     """
-    cost = 0.0
+    cost = 50.0
     fName = 'If it ain\'t broke, fix it'
     
     if details == True:
@@ -85,7 +83,7 @@ def towToService(details=False):
 # # # Camera modifiers
 
 def everyCam(details=False):
-    cost = 0.0
+    cost = 13.37
     fName = 'Spam cam'
     
     if details == True:
@@ -103,7 +101,7 @@ def everyCam(details=False):
 def cinematicCam(details=False):
     """Enable cinematic camera (20 seconds)
     """
-    cost = 0.0
+    cost = 5.0
     fName = 'Goto view'
     
     if details == True:
@@ -125,7 +123,7 @@ def cinematicCam(details=False):
 def metalPipes(details=False):
     """Play metal pipes sound
     """
-    cost = 0.0
+    cost = 17.0
     fName = 'Did you hear something?'
     
     if details == True:
@@ -152,7 +150,6 @@ def openLink(link):
     
  """
 
-#TODO #21 Create function to create dictionary with relevant information from each of the modules functions/actions
 def createIncentiveDict():
     global activeFunctions
     incentives = {}
@@ -166,6 +163,20 @@ def createIncentiveDict():
                 'cost': resultItems[0],
                 'name': resultItems[1]
                     }
+       })
+    print(incentives)
+    return incentives
+
+def createPriceDict(): # Price dictionary
+    global activeFunctions
+    incentives = {}
+    # Run and collect function information
+    for item in activeFunctions:
+        resultDict = {}
+        exec(f'itemDetails = {item}(details=True)',globals(),resultDict)
+        resultItems = resultDict['itemDetails']
+        incentives.update({
+            resultItems[0] : resultItems[1]
        })
     print(incentives)
     return incentives
