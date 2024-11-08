@@ -1,3 +1,4 @@
+
 import requests as rq
 from datetime import datetime, timezone
 import json
@@ -54,7 +55,16 @@ class extraLife:
             return False
 
 
-    def activity(self,ID:int=None,idType:str='team'):
+    def activity(self,ID:int=None,idType:str='team',testDonations=False):
+        
+        testDonationList = [{'amount': 50.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'Stop Guy'},
+                            {'amount': 17.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
+                            {'amount': 13.37, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
+                            {'amount':5.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
+                            {'amount': 17.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
+                            {'amount': 3.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
+                            {'amount': 6.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'}]
+        
         url = ''
         ID = ID if ID != None else self.teamID
         
@@ -67,10 +77,13 @@ class extraLife:
         response = self._requester('get',url)
         if response == False: # No change
             return False
+        if testDonations == True:
+            response = testDonationList
+        
         
         newInfo = []
         for item in response:
-            if datetime.fromisoformat(item['createdDateUTC']) < self.lastChecked:
+            if datetime.fromisoformat(item['createdDateUTC']) < self.lastChecked and testDonations == False:
                 pass # Old item, ignore
             elif item['type'] != 'donation':
                 pass # not a donation
@@ -107,25 +120,40 @@ priceList = elTruck.createPriceDict()
 verifed = False
 while verifed == False:
     verifed = el.validateTeam(input('enter Extra Life Team ID: '))
-textOutput('Script started, will scan for new donations every 15 - 20 seconds')
+
+testDono = False
+userInp = input('Do you want to run test donations? [Y/N]: ')
+if userInp.lower() in ['y','yes']:
+    testDono = True
+textOutput('Script started, will scan for new donations every 15 - 20 seconds. Open the game within the next 15 seconds')
+time.sleep(15)
 
 while True:
-    data = el.activity()
+    data = el.activity(testDonations=testDono)
+    testDono = False
     if data == False or data in [[],'',None]:
         textOutput('No new donations.')
     else:
         for item in data:
             try:
-                command = priceList[item['amount']]
+                user = item['title']
             except:
-                textOutput(f'{item['title']} donated ${item['amount']} but no action is asigned')
-                
-            textOutput(f'{item['title']} donated ${item['amount']}. Activating {command}')
+                user = 'Anonymous'
+            validCommand = False
             try:
-                exec(f"elTruck.{command}")
+                command = priceList[item['amount']]
+                validCommand = True
             except:
-                textOutput(f'Failed to run {command}')           
+                textOutput(f'{user} donated ${item['amount']} but no action is asigned')
+                
+
+            if validCommand == True:
+                try:
+                    textOutput(f'{user} donated ${item['amount']}. Activating {command[0]}')
+                    exec(f"elTruck.{command[1]}()")
+                except:
+                    textOutput(f'Failed to run {command[0]}')
     time.sleep(15) # Wait 15 seconds before doing another action
+    userAnswer = False
 
         
-
