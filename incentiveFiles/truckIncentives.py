@@ -71,13 +71,17 @@ def towToService(details=False):
     if details == True:
         return cost, fName
     else:
+        keyboard.tap('f')
+        keyboard.tap('e')
+        keyboard.tap(Key.space)
+        time.sleep(2)
         keyboard.tap(Key.f7)
-        time.sleep(1)  
-        keyboard.tap(Key.enter)
-        time.sleep(.5)
         keyboard.tap('1')
-        time.sleep(.5)
-        keyboard.tap(Key.enter)
+        time.sleep(1)
+        keyboard.press(Key.enter)
+        time.sleep(.2)
+        keyboard.release(Key.enter)
+        
 
     
 # # # Camera modifiers
@@ -107,7 +111,6 @@ def cinematicCam(details=False):
     if details == True:
         return cost, fName
     else:
-        playsound('sounds/gotoView.mp3')
         count = 0
         while count < 5:
             keyboard.tap('8')
@@ -176,7 +179,7 @@ def createPriceDict(): # Price dictionary
         exec(f'itemDetails = {item}(details=True)',globals(),resultDict)
         resultItems = resultDict['itemDetails']
         incentives.update({
-            resultItems[0] : resultItems[1]
+            resultItems[0] : [resultItems[1],item]
        })
     print(incentives)
     return incentives
