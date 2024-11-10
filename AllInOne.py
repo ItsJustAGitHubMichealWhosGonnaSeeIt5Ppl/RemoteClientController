@@ -40,8 +40,11 @@ class extraLife:
             self.failedRequests = 0
             response = rq.request(rqType, BASE_URL + url, headers=headers)
             headerInfo = response.headers._store
-            self.etag = headerInfo['etag'][1] # Get etag
-            return json.loads(response.content.decode(encoding='ascii'))
+            try:
+                self.etag = headerInfo['etag'][1] # Get etag
+            except:
+                pass
+            return json.loads(response.content.decode(encoding='utf-8'))
         elif code == 304: # No changes
             self.failedRequests = 0
             return False
@@ -56,14 +59,13 @@ class extraLife:
 
 
     def activity(self,ID:int=None,idType:str='team',testDonations=False):
-        
-        testDonationList = [{'amount': 50.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'Stop Guy'},
-                            {'amount': 17.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
-                            {'amount': 13.37, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
-                            {'amount':5.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
-                            {'amount': 17.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
-                            {'amount': 3.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'},
-                            {'amount': 6.0, 'createdDateUTC': '2024-10-26T19:57:08.163+0000', 'type': 'donation','title': 'RealGuy'}]
+        if testDonations == True:
+            try:
+                with open('test.json', 'r') as file:
+                    testDonationList = json.load(file)
+            except:
+                print('Failed to find/run test donations')
+                return False
         
         url = ''
         ID = ID if ID != None else self.teamID
@@ -89,6 +91,7 @@ class extraLife:
                 pass # not a donation
             else:
                 newInfo += [item]
+        self.lastChecked = datetime.now(timezone.utc)
         return newInfo
     
     def validateTeam(self,teamID): # Validate team ID

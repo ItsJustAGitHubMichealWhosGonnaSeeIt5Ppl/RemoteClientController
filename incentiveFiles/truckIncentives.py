@@ -41,23 +41,24 @@ def parkingBrake(details=False):
         keyboard.release(Key.space)
 
 
-#TODO #1 Fix Slalom command to accept float values correctly
-def slalom(details=False,delay = "0.8"):
+def slalom(details=False):
     cost = 3.0
     fName = 'Safety Car'
     
     if details == True:
         return cost, fName
     else:
-        delay = float(delay)
+        delay = .3
         loop = 0
         while loop < 5:
             keyboard.press('a')
             time.sleep(delay)
             keyboard.release('a')
+            time.sleep(.5)
             keyboard.press('d')
             time.sleep(delay)
             keyboard.release('d')
+            time.sleep(.5)
             loop+=1
         
 
@@ -76,12 +77,16 @@ def towToService(details=False):
         keyboard.tap(Key.space)
         time.sleep(2)
         keyboard.tap(Key.f7)
+        time.sleep(.5)
+        keyboard.press(Key.enter)
+        time.sleep(.2)
+        keyboard.release(Key.enter)
+        time.sleep(.2)
         keyboard.tap('1')
         time.sleep(1)
         keyboard.press(Key.enter)
         time.sleep(.2)
         keyboard.release(Key.enter)
-        
 
     
 # # # Camera modifiers
