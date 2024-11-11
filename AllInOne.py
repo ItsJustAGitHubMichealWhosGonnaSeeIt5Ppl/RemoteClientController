@@ -1,6 +1,6 @@
 
 import requests as rq
-from datetime import datetime, timezone
+from datetime import datetime, timezone,timedelta
 import json
 import urllib.parse
 import incentiveFiles.truckIncentives as elTruck
@@ -8,16 +8,16 @@ import time
 
 ### Access ExtraLife
 #TODO add option to change intensity of "safety car"
-#TODO Add timezone sync https://worldtimeapi.org/api
-#TODO use timezone sync initially, then switch to internal clock.
 
-version = '5'
+
+version = '6'
 lastUpdated = '2024/11/11'
 BASE_URL = 'https://www.extra-life.org/api/'
-defaultID = '68305' # Change this next year
+defaultID = '68305' # Change this every year
+blacklist = [] # DonorIDs to blacklist.  Defaults to empty
 
 
-class extraLife:
+class ExtraLife:
     """ExtraLife API
     """
     def __init__(self):
@@ -26,31 +26,50 @@ class extraLife:
         self.lastChecked = datetime.now(timezone.utc) # set to when program first runs
         self.failedRequests = 0
     
-    def _requester(self,rqType,url,forceUpdate=False):
+    def _requester(self,
+            rqType:str,
+            endpoint:str,
+            query:dict=None,
+            forceUpdate:bool=False):
+        """Send requests to Extra Life API.
+        Per Extra Life API guidelines, first sends only a header request to check ETag.  If the ETag has changed, then a full request is sent.
+
+        Args:
+            rqType (str): Request Type. valid request types are currently only 'get' and 'head' but only 'get' should be used.
+            endpoint (str): Endpoint to make request to.  See Donordrive documentation for full list of valid endpoints.
+            query (dict, optional): Query (if any) to be sent. Defaults to None.
+            forceUpdate (bool, optional): If set to True, ETag will be ignored and a normal request is sent. Do not abuse. Defaults to False.
+
+        Raises:
+            e: Errors from API request
+
+        Returns:
+            any: False if no changes have been detected between checks, otherwise returns JSON dump of content.
+        """
+        
         headers = {
             'If-None-Match': self.etag,
             'User-Agent': 'Automated Incentives Script',
         }
         
-        if forceUpdate==False: 
+        if forceUpdate==False: # If true, this will bypass the header check, meaning a full response will be returned.
             try:
-                response = rq.request('head', BASE_URL + url, headers=headers)
+                response = rq.request('head', BASE_URL + endpoint, headers=headers,params=query)
             except Exception as e:
                 raise e
             code = response.status_code
-        
         else:
             code = 200
         
-    
+        
         if code == 200:
-            response = rq.request(rqType, BASE_URL + url, headers=headers)
-            headerInfo = response.headers._store
+            response = rq.request(rqType, BASE_URL + endpoint, headers=headers,params=query)
             try:
-                self.etag = headerInfo['etag'][1] # Get etag
+                self.etag = response.headers._store['etag'][1] # Get etag from Header
             except:
                 print('WARNING! Failed to set Etag.  This can be ignored unless it happens repeatedly.')
                 pass
+            
             try:
                 self.failedRequests = 0
                 return json.loads(response.content.decode(encoding='utf-8'))
@@ -58,36 +77,46 @@ class extraLife:
                 print('WARNING! Failed to parse response in JSON format.  This can be ignored unless it happens again')
                 self.failedRequests += 1
                 return False
+        
         elif code == 304: # No changes
-            self.failedRequests = 0
+            self.failedRequest = 0
             return False
+    
         else:
             if self.failedRequests > 4:
                 textOutput(f'FINAL WARNING. 5 donation checks have failed in a row.  Something is wrong, contact Finn.\nError: {code}:{response.reason}')
             else:
                 textOutput('WARNING! Last donation check failed!')
                 self.failedRequests += 1
-            
-            return False
 
 
-    def activity(self,
+    def donations(self,
                  ID:int=None,
                  idType:str='team',
-                 testDonations=False
+                 testDonations:bool=False
                  ):
-        """Check activity
+        """Check donations
 
         Args:
-            ID (int, optional): Extra Life ID. If none provided, will default to the TeamID set earlier.
+            ID (int | None, optional): Extra Life ID. If none provided, will default to the TeamID set earlier.
             idType (str, optional): Can be set to 'team', 'participant' or 'event'. Defaults to 'team'.
             testDonations (bool, optional): Whether to run test donations (external JSON file). Defaults to False.
 
         Raises:
             TypeError: Invalid ID provided
+        
+        Returns:
+            any: List of donations OR False if no new donations.
 
         """
-        if testDonations == True:
+        ID = ID if ID != None else self.teamID # Set ID
+        
+        if idType.lower() not in ('team','participant','event'): # Validate ID 
+            raise TypeError('Invalid ID type')
+        else:
+            url = idType.lower() + 's' + '/' + str(ID) + '/donations' # TODO make this an fstring
+        
+        if testDonations == True: # Run test donations
             try:
                 print('Test donations enabled, trying to load file.')
                 with open('test.json', 'r') as file:
@@ -96,33 +125,23 @@ class extraLife:
             except:
                 print('Failed to find/run test donations.')
                 return False
+            time.sleep(15)
+            return testDonationList # Return list of test donations
         
-        url = ''
-        ID = ID if ID != None else self.teamID
         
-        if idType.lower() not in ('team','participant','event'):
-            raise TypeError('Invalid ID type')
-        else:
-            url += idType.lower() + 's' + '/' + str(ID) + '/activity'
-        
-        url += '&' + urllib.parse.urlencode({'orderBy': 'createdDateUTC'}) # Sort most recent first
-        response = self._requester('get',url)
+        queryString = {'limit': "20"} # Limits to most recent 20 donations (automatically sorted by most recent)
+        response = self._requester('get',url, query=queryString)
         if response == False: # No change
             return False
-        if testDonations == True:
-            time.sleep(15)
-            response = testDonationList
-        
-        
+            
+
         newInfo = []
-        for item in response:
-            if datetime.fromisoformat(item['createdDateUTC']) < self.lastChecked and testDonations == False:
-                pass # Old item, ignore
-            elif item['type'] != 'donation':
-                pass # not a donation
+        for item in response: # Go through responses 
+            if datetime.fromisoformat(item['createdDateUTC']) < self.lastChecked and testDonations == False: # Ignore old items
+                pass
             else:
                 newInfo += [item]
-        self.lastChecked = datetime.now(timezone.utc)
+        self.lastChecked = datetime.now(timezone.utc) # Update last checked time after parsing new responses.
         return newInfo
     
     def validateTeam(self,teamID): # Validate team ID
@@ -137,7 +156,7 @@ class extraLife:
             return False
         else:
             content = json.loads(response.content.decode(encoding='ascii'))
-            confirm = input(f'Found team {content['name']}. Press Y to continue, press any other key if this is not the correct team: ')
+            confirm = input(f'Found team {content['name']}. Is this correct [Y/N]: ')
             if confirm.lower() not in ['y', 'yes']:
                 return False
             else:
@@ -160,26 +179,32 @@ def syncTime():
     while noData == True:
         if failedRequests > 10:
             return False # Return if time sync continues to fail
-        amsterdam = rq.get('http://worldtimeapi.org/api/timezone/Europe/Amsterdam')
-        if amsterdam.status_code != 200:
-            noData = True
-            failedRequests +=1 # Cannot get time
-        else:
-            decoded = json.loads(amsterdam.content.decode())
-            time = datetime.fromisoformat(decoded['datetime'])
-            print(time)
-            remainder = time.second % 10
-            if remainder != 0:
-                return 10 - remainder
+        try:
+            amsterdam = rq.get('https://timeapi.io/api/time/current/zone?timeZone=Europe/Amsterdam')
+            localTime = datetime.now()
+            if amsterdam.status_code != 200:
+                noData = True
+                failedRequests +=1 # Cannot get time
             else:
-                return 0
+                decoded = json.loads(amsterdam.content.decode())
+                realTime = datetime.fromisoformat(decoded['dateTime'])
+                offsetSeconds = realTime.second - localTime.second
+                return offsetSeconds
+                    
+        except ConnectionError:
+            failedRequests +=1
+            print('Failed to reach timeserver')
+
+
 ### Main program    
-el = extraLife()
-priceList = elTruck.createPriceDict()
+el = ExtraLife()
+pricesAndIncentives = elTruck.incentiveDetails()
+priceDict = pricesAndIncentives[0]
+IncentiveIDsDict = pricesAndIncentives[1]
 
 print(f'Extra Life donation monitoring script.\nVersion: {version}, Last updated: {lastUpdated}')
 time.sleep(.5)
-textOutput(f'Trying to load Default team, ID: {defaultID}')
+textOutput(f'Trying to load default team, ID {defaultID}')
 verifed = el.validateTeam(defaultID) # Default ID
 while verifed == False:
     verifed = el.validateTeam(input('enter Extra Life Team ID: '))
@@ -188,35 +213,53 @@ testDono = False
 userInp = input('Do you want to run test donations? [Y/N]: ')
 if userInp.lower() in ['y','yes']:
     testDono = True
-textOutput('\n\n\n\n\n\n\n\n\nScript started.  Donations will be checked every 10 - 15 seconds in order to comply with API usage rules.')
+print('\n\n\n\n\n\n\n\n\nScript started.  Donations will be checked every 10 - 15 seconds in order to comply with API usage rules.')
 
-
+offset = syncTime()
+syncedTime = datetime.now()
 # Main loop
 while True:
-    sleep = syncTime()
-    time.sleep(sleep if sleep != False else 10) # Avoid issues if time cannot be synced
-    data = el.activity(testDonations=testDono)
+    localTime = datetime.now()
+    sleepyTime = 10 - ((localTime.second + offset) % 10)
+    time.sleep(sleepyTime)
+    if (syncedTime + timedelta(minutes=10)) < localTime: # Resync time every 10 minutes.
+        offset = syncTime()
+        syncedTime = datetime.now()
+
+    
+    newDonations = el.donations(testDonations=testDono)
     testDono = False
-    if data == False or data in [[],'',None]:
+    if newDonations == False or newDonations in [[],'',None]:
         textOutput('No new donations.')
+    
     else:
-        for item in data:
-            try:
-                user = item['title']
-            except:
-                user = 'Anonymous'
+        for donation in newDonations:
             validCommand = False
             try:
-                command = priceList[item['amount']]
-                validCommand = True
+                user = donation['displayName']
             except:
-                textOutput(f'{user} donated ${item['amount']} but no action is asigned')
+                user = 'Anonymous'
+            
+            if 'incentiveID' in donation: # Incentive ID present, use this instead of amount.
+                try:
+                    command = IncentiveIDsDict[donation['incentiveID']]
+                    validCommand = True
+                except:
+                    pass
+                    
+            if validCommand == False: # If incentive ID is not present or failed to get correct item from ID
+                try:
+                    command = priceDict[donation['amount']]
+                    validCommand = True
+                except:
+                    textOutput(f'{user} donated ${donation['amount']} but no action is asigned')
+                    validCommand = False
 
             if validCommand == True:
                 try:
-                    textOutput(f'{user} donated ${item['amount']}. Activating {command[0]}')
+                    textOutput(f'{user} donated ${donation['amount']}. Activating {command[0]}')
                     exec(f"elTruck.{command[1]}()")
                 except:
                     textOutput(f'Failed to run {command[0]}')
-    time.sleep(5) # Wait 5 seconds (this avoids the time API from freaking tf out)
+    time.sleep(1) # Wait 1 second (avoids script rounding down and running like 5 times in 5 seconds)
     userAnswer = False
