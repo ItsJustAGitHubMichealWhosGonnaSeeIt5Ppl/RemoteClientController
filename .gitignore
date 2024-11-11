@@ -2,3 +2,6 @@
 *__pycache__
 /config.txt
 .DS_Store
+*.json
+/*.csv
+/*.txt

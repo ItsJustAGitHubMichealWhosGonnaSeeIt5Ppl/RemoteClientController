@@ -9,7 +9,6 @@ import time
 ### Access ExtraLife
 #TODO add option to change intensity of "safety car"
 
-
 version = '6'
 lastUpdated = '2024/11/11'
 BASE_URL = 'https://www.extra-life.org/api/'
@@ -52,7 +51,7 @@ class ExtraLife:
             'User-Agent': 'Automated Incentives Script',
         }
         
-        if forceUpdate==False: # If true, this will bypass the header check, meaning a full response will be returned.
+        if forceUpdate == False: # If true, this will bypass the header check, meaning a full response will be returned.
             try:
                 response = rq.request('head', BASE_URL + endpoint, headers=headers,params=query)
             except Exception as e:
@@ -64,6 +63,9 @@ class ExtraLife:
         
         if code == 200:
             response = rq.request(rqType, BASE_URL + endpoint, headers=headers,params=query)
+            if response.status_code == 304: # Sometimes header returns 200, but this returns 304.  IDK why.
+                self.failedRequest = 0
+                return False
             try:
                 self.etag = response.headers._store['etag'][1] # Get etag from Header
             except:

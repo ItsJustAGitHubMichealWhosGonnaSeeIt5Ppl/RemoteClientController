@@ -74,7 +74,7 @@ def everyCam():
 def cinematicCam():
     """Enable cinematic camera (20 seconds)
     """
-
+    playsound('sounds/gotoView.mp3')
     count = 0
     while count < 5:
         keyboard.tap('8')
@@ -92,26 +92,11 @@ def metalPipes():
 
 # # # No actions
 def wrongSide(): # No action to be performed
-    cost = 9.27
-    fName = 'Innit'
-    incntID = 'F4C535C1-0E5E-1C62-AB2D979F8A51E076'
-    
-    if details == True:
-        return cost, fName, incntID
-    #TODO add sound
+    pass
 
 def hitCop():
     # FLOAT! Incentive Cost.  Used if ExtraLife integration is enabled
-    cost = 9.11
-    # STRING! Friendly name. Displayed in control panel
-    fName = 'I fought the law and I won'
-    incntID = 'F4BEC855-F997-3EE8-077CC68E98073914'
-    # Returns details
-    if details == True:
-        return cost, fName, incntID
-    else:
-        # Run action here
-        pass
+    pass
 
 
 # # # Other
@@ -140,7 +125,7 @@ def incentiveDetails():
     """
     priceDict = {}
     incntIDDict = {}
-    with open('truckIncentives.json', 'r') as jsonFile:
+    with open('incentiveFiles/truckIncentives.json', 'r') as jsonFile:
         incentives = json.load(jsonFile)
     for incentive in incentives:
         priceDict.update({incentive['Amount']: [incentive['Name'],incentive['Command']]})
