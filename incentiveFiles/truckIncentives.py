@@ -14,89 +14,98 @@ keyboard = Controller()
 
 # # # Keypresses
 
-def parkingBrake():
-    """Enable parking brake
-    """
 
-    keyboard.press(Key.space)
-    time.sleep(.5)  
-    keyboard.release(Key.space)
-
-
-def slalom(delay=.3):
-    """Zig zag back and forth"""
-    loop = 0
-    while loop < 5:
-        keyboard.press('a')
-        time.sleep(delay)
-        keyboard.release('a')
-        time.sleep(.5)
-        keyboard.press('d')
-        time.sleep(delay)
-        keyboard.release('d')
-        time.sleep(.5)
-        loop+=1
-        
-
-def towToService():
-    """Tow to nearest service centre
-    """
-
-    keyboard.tap('f')
-    keyboard.tap('e')
-    keyboard.tap(Key.space)
-    time.sleep(2)
-    keyboard.tap(Key.f7)
-    time.sleep(.5)
-    keyboard.press(Key.enter)
-    time.sleep(.2)
-    keyboard.release(Key.enter)
-    time.sleep(.2)
-    keyboard.tap('1')
-    time.sleep(1)
-    keyboard.press(Key.enter)
-    time.sleep(.2)
-    keyboard.release(Key.enter)
-
+class TruckControls:
+    def __init__(self,wheelToggle):
+        self.wheel = wheelToggle
     
-# # # Camera modifiers
-def everyCam():
-
-    loop = 0
-    while loop < 7:
-        num = str(random.randrange(0,9))
-        keyboard.tap(num)
-        loop+=1
-        time.sleep(.4)
-    keyboard.tap('1')
+    
+    def parkingBrake():
+        """Enable parking brake"""
+        keyboard.tap(Key.space)
 
 
-def cinematicCam():
-    """Enable cinematic camera (20 seconds)
-    """
-    playsound('sounds/gotoView.mp3')
-    count = 0
-    while count < 5:
-        keyboard.tap('8')
-        time.sleep(5) 
-        count +=1
-    keyboard.tap('1')
+    def slalom(self):
+        """Zig zag back and forth"""
+        if self.wheel == True: # Using a wheel
+            hold= .3
+            delay = .5
+        else:
+            hold= .8
+            delay = 0
+            
+        loop = 0
+        while loop < 5:
+            keyboard.press('a')
+            time.sleep(hold)
+            keyboard.release('a')
+            time.sleep(delay)
+            keyboard.press('d')
+            time.sleep(hold)
+            keyboard.release('d')
+            time.sleep(delay)
+            loop+=1
+            
 
-# # # Sounds
-# TODO #8 Get sounds from the web working
-def metalPipes():
-    """Play metal pipes sound
-    """
-    playsound('sounds/metalPipe.mp3')
+    def towToService(self):
+        """Tow to nearest service centre
+        """
+
+        keyboard.tap('f')
+        keyboard.tap('e')
+        keyboard.tap(Key.space)
+        time.sleep(2)
+        keyboard.tap(Key.f7)
+        time.sleep(.5)
+        keyboard.press(Key.enter)
+        time.sleep(.2)
+        keyboard.release(Key.enter)
+        time.sleep(.2)
+        keyboard.tap('1')
+        time.sleep(1)
+        keyboard.press(Key.enter)
+        time.sleep(.2)
+        keyboard.release(Key.enter)
+
+        
+    # # # Camera modifiers
+    def everyCam(self):
+
+        loop = 0
+        while loop < 7:
+            num = str(random.randrange(0,9))
+            keyboard.tap(num)
+            loop+=1
+            time.sleep(.4)
+        keyboard.tap('1')
 
 
-# # # No actions
-def wrongSide(): # No action to be performed
-    pass
+    def cinematicCam(self):
+        """Enable cinematic camera (20 seconds)
+        """
+        playsound('sounds/gotoView.mp3')
+        count = 0
+        while count < 5:
+            keyboard.tap('8')
+            time.sleep(5) 
+            count +=1
+        keyboard.tap('1')
 
-def hitCop():
-    # FLOAT! Incentive Cost.  Used if ExtraLife integration is enabled
-    pass
+    # # # Sounds
+    # TODO #8 Get sounds from the web working
+    def metalPipes(self):
+        """Play metal pipes sound
+        """
+        playsound('sounds/metalPipe.mp3')
+
+
+    # # # No actions
+    def wrongSide(self): # No action to be performed
+        pass
+
+    def hitCop(self):
+        # FLOAT! Incentive Cost.  Used if ExtraLife integration is enabled
+        pass
 
 
 # # # Other

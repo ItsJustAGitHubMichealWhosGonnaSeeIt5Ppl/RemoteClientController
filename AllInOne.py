@@ -206,15 +206,27 @@ IncentiveIDsDict = pricesAndIncentives[1]
 
 print(f'Extra Life donation monitoring script.\nVersion: {version}, Last updated: {lastUpdated}')
 time.sleep(.5)
-textOutput(f'Trying to load default team, ID {defaultID}')
+print(f'Trying to load default team, ID {defaultID}')
 verifed = el.validateTeam(defaultID) # Default ID
 while verifed == False:
     verifed = el.validateTeam(input('enter Extra Life Team ID: '))
 
-testDono = False
+userInp = input('Are you using a wheel? [Y/N]: ')
+if userInp.lower() in ['y','yes']:
+    wheel = True
+    print('Wheel mode Enabled')
+else:
+    wheel = False
+    print('Wheel mode Disabled')
+runCommands = elTruck.TruckControls(wheel) # Set wheel mode
+
+
 userInp = input('Do you want to run test donations? [Y/N]: ')
 if userInp.lower() in ['y','yes']:
     testDono = True
+else:
+    testDono = False
+
 print('\n\n\n\n\n\n\n\n\nScript started.  Donations will be checked every 10 - 15 seconds in order to comply with API usage rules.')
 
 offset = syncTime()
@@ -230,7 +242,7 @@ while True:
 
     
     newDonations = el.donations(testDonations=testDono)
-    testDono = False
+    testDono = False # Prevents test donations from running more than once
     if newDonations == False or newDonations in [[],'',None]:
         textOutput('No new donations.')
     
@@ -260,8 +272,7 @@ while True:
             if validCommand == True:
                 try:
                     textOutput(f'{user} donated ${donation['amount']}. Activating {command[0]}')
-                    exec(f"elTruck.{command[1]}()")
+                    exec(f"runCommands.{command[1]}()")
                 except:
                     textOutput(f'Failed to run {command[0]}')
     time.sleep(1) # Wait 1 second (avoids script rounding down and running like 5 times in 5 seconds)
-    userAnswer = False
